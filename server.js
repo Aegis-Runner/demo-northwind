@@ -107,28 +107,271 @@ function priceBooking(lane, lines, insured) {
 
 // ── chrome ───────────────────────────────────────────────────────────────────
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const STYLE = `body{font:15px/1.5 system-ui,sans-serif;margin:0;background:#f6f7f9;color:#16202c}
-header{background:#12304a;color:#fff;padding:12px 20px;display:flex;gap:18px;align-items:center}
-header a{color:#cfe4f5;text-decoration:none;font-weight:500}header a.on{color:#fff;text-decoration:underline}
-main{max-width:940px;margin:22px auto;padding:0 16px}
-.card{background:#fff;border:1px solid #dfe4ea;border-radius:8px;padding:18px;margin-bottom:18px}
-table{border-collapse:collapse;width:100%}th,td{text-align:left;padding:8px 10px;border-bottom:1px solid #eceff3}
-th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#5b6b7c}
-label{display:block;margin:10px 0 4px;font-size:13px;color:#41505f}
-input,select{padding:8px 10px;border:1px solid #c9d2db;border-radius:6px;min-width:230px;font-size:14px}
-button,.btn{background:#12304a;color:#fff;border:0;border-radius:6px;padding:9px 16px;font-size:14px;cursor:pointer;text-decoration:none;display:inline-block}
-.btn.ghost{background:#fff;color:#12304a;border:1px solid #c9d2db}
-.steps{display:flex;gap:8px;margin-bottom:14px}.steps span{padding:4px 12px;border-radius:14px;background:#e6ebf0;font-size:13px}
-.steps span.now{background:#12304a;color:#fff}
-.err{background:#fdecea;border:1px solid #f5b3ab;color:#8a1c10;padding:9px 12px;border-radius:6px;margin-bottom:12px}
-.tot{font-size:22px;font-weight:600}.muted{color:#6b7a89;font-size:13px}`;
+const STYLE = `
+:root {
+  --primary: #1e3a8a;
+  --primary-hover: #172554;
+  --primary-light: #eff6ff;
+  --primary-text: #1e3a8a;
+  --bg: #f8fafc;
+  --card-bg: #ffffff;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --success: #059669;
+  --success-light: #ecfdf5;
+  --success-text: #065f46;
+  --warning-light: #fef3c7;
+  --warning-text: #92400e;
+  --danger: #b91c1c;
+  --danger-light: #fee2e2;
+  --danger-text: #991b1b;
+}
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+header {
+  background: linear-gradient(135deg, #071e3d 0%, #0a2540 100%);
+  color: #fff;
+  padding: 14px 20px;
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+}
+header strong {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  background: linear-gradient(to right, #38bdf8, #60a5fa);
+  -webkit-background-clip: text;-webkit-text-fill-color: transparent;
+}
+header a {
+  color: #cbd5e1;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.925rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s;
+}
+header a:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.1);
+}
+header a.on {
+  color: #fff;
+  background: rgba(255,255,255,0.15);
+  font-weight: 600;
+}
+main {
+  max-width: 940px;
+  width: 100%;
+  margin: 22px auto;
+  padding: 0 16px;
+  box-sizing: border-box;
+  flex-grow: 1;
+}
+h1 {
+  font-size: 1.875rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #071e3d;
+}
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 18px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05),0 2px 4px -2px rgba(0,0,0,0.05);
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+th, td {
+  text-align: left;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+th {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+td {
+  font-size: 14px;
+}
+tr:last-child td {
+  border-bottom: none;
+}
+label {
+  display: block;
+  margin: 12px 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+input, select {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  min-width: 230px;
+  font-size: 14px;
+  transition: all 0.2s;
+  background-color: #f1f5f9;
+  width: 100%;
+  max-width: 400px;
+  box-sizing: border-box;
+}
+input:focus, select:focus {
+  outline: none;
+  border-color: #071e3d;
+  box-shadow: 0 0 0 3px #bfdbfe;
+  background-color: #fff;
+}
+button, .btn {
+  background: #0f2d4a;
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.2s;
+  text-align: center;
+  box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+}
+button:hover, .btn:hover {
+  background: #1e3a8a;
+  transform: translateY(-1px);
+}
+button:active, .btn:active {
+  transform: translateY(0);
+}
+.btn.ghost {
+  background: #fff;
+  color: #0f2d4a;
+  border: 1px solid var(--border);
+}
+.btn.ghost:hover {
+  background: #eff6ff;
+  border-color: #0f2d4a;
+}
+.steps {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.steps span {
+  padding: 6px 16px;
+  border-radius: 9999px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #e2e8f0;
+}
+.steps span.now {
+  background: #0f2d4a;
+  color: #fff;
+  border-color: #0f2d4a;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+.err {
+  background: var(--danger-light);
+  border: 1px solid #fca5a5;
+  color: var(--danger-text);
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+.tot {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f2d4a;
+}
+.muted {
+  color: var(--text-muted);
+  font-size: 13px;
+}`;
 function layout(active, title, body) {
-  const nav = [["/", "Dashboard"], ["/bookings", "Bookings"], ["/shippers", "Shippers"], ["/book/step1", "New booking"]];
-  return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)} · Northwind Freight</title>
-<meta name="viewport" content="width=device-width,initial-scale=1"><style>${STYLE}</style></head><body>
-<header><strong>Northwind Freight</strong>${nav.map(([h, l]) => `<a href="${h}" class="${active === h ? "on" : ""}">${l}</a>`).join("")}
-<span style="margin-left:auto"><a href="/logout">Sign out</a></span></header>
-<main><h1>${esc(title)}</h1>${body}</main></body></html>`;
+  return `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${esc(title)} · Northwind Freight</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>${STYLE}</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col font-sans">
+  <div id="react-root"></div>
+  <div id="server-content" style="display:none;">${body}</div>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    
+    function App() {
+      const [content, setContent] = useState('');
+      useEffect(() => {
+        setContent(document.getElementById('server-content').innerHTML);
+      }, []);
+      
+      const navItems = [
+        ["/", "Dashboard"],
+        ["/bookings", "Bookings"],
+        ["/shippers", "Shippers"],
+        ["/book/step1", "New booking"]
+      ];
+      
+      return (
+        <div className="flex flex-col min-h-screen">
+          <header className="bg-gradient-to-r from-[#071e3d] to-[#0a2540] text-white p-4 flex items-center gap-6 shadow-lg">
+            <strong className="text-xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-300">Northwind Freight</strong>
+            <nav className="flex gap-4 ml-4">
+              {navItems.map(([href, label]) => {
+                const on = "${active}" === href;
+                return (
+                  <a key={href} href={href} className={"text-sm font-semibold px-3 py-1.5 rounded-md transition-all " + (on ? "bg-white/10 text-white font-bold" : "text-slate-300 hover:text-white")}>
+                    {label}
+                  </a>
+                );
+              })}
+            </nav>
+            <span className="ml-auto text-sm text-slate-300"><a href="/logout" className="hover:text-white transition-all">Sign out</a></span>
+          </header>
+          <main className="max-w-[940px] w-full mx-auto p-6 flex-grow">
+            <h1 className="text-3xl font-black text-[#071e3d] mb-6">${esc(title)}</h1>
+            <div dangerouslySetInnerHTML={{ __html: content }} />
+          </main>
+          <footer className="mt-auto text-center py-6 border-t border-slate-200 bg-white text-xs text-slate-400">
+            &copy; 2026 Northwind Freight. Powered by <strong>React 18 SPA</strong> and modern styling selectors.
+          </footer>
+        </div>
+      );
+    }
+    
+    ReactDOM.createRoot(document.getElementById('react-root')).render(<App />);
+  </script>
+</body>
+</html>`;
 }
 
 // ── auth ─────────────────────────────────────────────────────────────────────
